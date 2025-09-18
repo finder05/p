@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MicroBlog — Multi Screen (No Feed)</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f172a; color:#e5e7eb; margin:0; padding:0; }
+    .container { max-width:900px; margin:0 auto; padding:20px; }
+    header { background:#111827; padding:10px 20px; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; }
+    header h1 { margin:0; font-size:20px; }
+    input, textarea { width:100%; padding:10px; border-radius:8px; border:1px solid #1f2937; background:#0b1222; color:#fff; }
+    button { padding:10px 14px; border:none; border-radius:8px; background:#22c55e; color:#03120a; font-weight:bold; cursor:pointer; }
+    .card { background:#111827; border:1px solid #1f2937; border-radius:10px; padding:16px; margin:10px 0; }
+    .row { display:flex; gap:10px; }
+    .screen { display:none; }
+    .screen.active { display:block; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🌱 MicroBlog</h1>
+    <div id="activeUserChip">Not signed in</div>
+  </header>
+
+  <div class="container">
+    <!-- Screen 1: Registration -->
+    <div id="screenRegister" class="screen active">
+      <div class="card">
+        <h2>Register</h2>
+        <input id="regUser" placeholder="Choose username" />
+        <input id="regPass" type="password" placeholder="Choose password" />
+        <button id="registerBtn">Register</button>
+        <p>Already have an account? <a href="#" id="toSignIn">Sign In</a></p>
+      </div>
+    </div>
+
+    <!-- Screen 2: Sign In -->
+    <div id="screenSignIn" class="screen">
+      <div class="card">
+        <h2>Sign In</h2>
+        <input id="loginUser" placeholder="Username" />
+        <input id="loginPass" type="password" placeholder="Password" />
+        <button id="loginBtn">Sign In</button>
+        <p>No account yet? <a href="#" id="toRegister">Register</a></p>
+      </div>
+    </div>
+
+    <!-- Screen 3: App (No Feed) -->
+    <div id="screenApp" class="screen">
+      <div class="card">
+        <h2>Create a Post</h2>
+        <textarea id="composer" placeholder="What's happening?"></textarea>
+        <button id="postBtn">Post</button>
+      </div>
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <script>
+    const DB = {
+      load(k,f){ try{ return JSON.parse(localStorage.getItem(k)) ?? f }catch{ return f } },
+      save(k,v){ localStorage.setItem(k, JSON.stringify(v)) }
+    }
+
+    const K = { users:"mb_users", creds:"mb_creds", current:"mb_current" }
+
+    let users = DB.load(K.users, [])
+    let creds = DB.load(K.creds, {})
+    let current = DB.load(K.current, null)
+
+    const $ = q => document.querySelector(q)
+
+    function showScreen(id){
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'))
+      $(id).classList.add('active')
+      clearInputs()
+    }
+
+    function clearInputs(){
+      $('#regUser').value = ''
+      $('#regPass').value = ''
+      $('#loginUser').value = ''
+      $('#loginPass').value = ''
+      $('#composer').value = ''
+    }
+
+    async function hash(text){
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('')
+    }
+
+    async function register(u,p){
+      if(!u||!p) return alert('Enter username and password')
+      if(creds[u]) return alert('User already exists')
+      creds[u] = await hash(p)
+      users.push(u)
+      DB.save(K.users, users)
+      DB.save(K.creds, creds)
+      alert('Registered! Please sign in.')
+      showScreen('#screenSignIn')
+    }
+
+    async function login(u,p){
+      if(!u||!p) return alert('Enter username and password')
+      if(!creds[u]) return alert('No such user')
+      if(creds[u] !== await hash(p)) return alert('Wrong password')
+      current = u
+      DB.save(K.current, u)
+      sync()
+      showScreen('#screenApp')
+    }
+
+    function logout(){
+      current = null
+      DB.save(K.current, null)
+      $('#activeUserChip').textContent = 'Not signed in'
+      showScreen('#screenSignIn')
+    }
+
+    function sync(){
+      $('#activeUserChip').textContent = current ? `Signed in as @${current}` : 'Not signed in'
+    }
+
+    // Event handlers
+    $('#registerBtn').addEventListener('click',()=>register($('#regUser').value.trim(),$('#regPass').value.trim()))
+    $('#loginBtn').addEventListener('click',()=>login($('#loginUser').value.trim(),$('#loginPass').value.trim()))
+    $('#postBtn').addEventListener('click',()=>{ if(!current) return; alert('Posted: '+$('#composer').value); $('#composer').value='' })
+    $('#logoutBtn').addEventListener('click',logout)
+
+    $('#toSignIn').addEventListener('click',e=>{e.preventDefault();showScreen('#screenSignIn')})
+    $('#toRegister').addEventListener('click',e=>{e.preventDefault();showScreen('#screenRegister')})
+
+    if(current){ showScreen('#screenApp') } else { showScreen('#screenRegister') }
+    sync()
+  </script>
+</body>
+</html>
