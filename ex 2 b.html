@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Classifieds Marketplace</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      color: #333;
+      line-height: 1.6;
+    }
+    header {
+      background-color: #007bff;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+    main {
+      padding: 2rem;
+    }
+    h2 {
+      margin-bottom: 1rem;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 400px;
+      margin-bottom: 2rem;
+    }
+    input, textarea {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      padding: 0.75rem;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    #productList {
+      display: grid;
+      gap: 1rem;
+    }
+    .product-card {
+      background-color: white;
+      padding: 1rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .buy-button {
+      margin-top: 1rem;
+      background-color: #ffc107;
+    }
+    .buy-button:hover {
+      background-color: #e0a800;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #eee;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🛍️ Classifieds Marketplace</h1>
+  </header>
+  <main>
+    <section id="listing-form">
+      <h2>Post a Product</h2>
+      <form id="productForm">
+        <input type="text" id="title" placeholder="Product Title" required />
+        <input type="text" id="price" placeholder="Price (₹)" required />
+        <textarea id="description" placeholder="Description" required></textarea>
+        <button type="submit">Add Listing</button>
+      </form>
+    </section>
+    <section id="listings">
+      <h2>Available Products</h2>
+      <div id="productList"></div>
+    </section>
+  </main>
+  <footer>
+    <p>&copy; 2025 Classifieds Marketplace</p>
+  </footer>
+  <script>
+    document.getElementById('productForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = document.getElementById('title').value.trim();
+      const price = document.getElementById('price').value.trim();
+      const description = document.getElementById('description').value.trim();
+      if (!title || !price || !description) {
+        alert('Please fill in all fields.');
+        return;
+      }
+      const productCard = document.createElement('div');
+      productCard.className = 'product-card';
+      productCard.innerHTML = `
+        <h3>${title}</h3>
+        <p><strong>Price:</strong> ₹${price}</p>
+        <p>${description}</p>
+        <button class="buy-button">Buy</button>
+      `;
+      productCard.querySelector('.buy-button').addEventListener('click', function() {
+        alert('Thank you for your interest! The seller will contact you soon.');
+      });
+      document.getElementById('productList').appendChild(productCard);
+      document.getElementById('productForm').reset();
+    });
+  </script>
+</body>
+</html>
